@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>DEV — Painel de Debug</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg:      #0a0a0a;
+        --bg-2:    #111;
+        --bg-3:    #1a1a1a;
+        --bg-4:    #222;
+        --border:  rgba(255,255,255,0.08);
+        --text:    #e4e4e4;
+        --muted:   #555;
+        --green:   #4ade80;
+        --red:     #f87171;
+        --yellow:  #facc15;
+        --blue:    #60a5fa;
+        --mono:    "JetBrains Mono", monospace;
+      }
+
+      *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+      body {
+        font-family: "Outfit", system-ui, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* ── Header ── */
+      header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem 1.5rem;
+        background: var(--bg-2);
+        border-bottom: 1px solid var(--border);
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      .dev-badge {
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        background: rgba(250,204,21,0.15);
+        color: var(--yellow);
+        border: 1px solid rgba(250,204,21,0.3);
+        border-radius: 4px;
+        padding: 0.2rem 0.5rem;
+      }
+
+      header h1 {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #fff;
+      }
+
+      .header-right {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+      }
+
+      .stat-pill {
+        font-size: 0.78rem;
+        font-weight: 600;
+        padding: 0.25rem 0.7rem;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        color: var(--muted);
+      }
+
+      .stat-pill span { color: var(--text); }
+
+      .btn-refresh {
+        font-family: inherit;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--text);
+        background: var(--bg-3);
+        border: 1px solid var(--border);
+        border-radius: 7px;
+        padding: 0.35rem 0.85rem;
+        cursor: pointer;
+        transition: background 0.15s, border-color 0.15s;
+      }
+
+      .btn-refresh:hover { background: var(--bg-4); border-color: rgba(255,255,255,0.15); }
+
+      /* ── Main ── */
+      main {
+        flex: 1;
+        padding: 1.5rem;
+        overflow-x: auto;
+      }
+
+      /* ── Aviso dev ── */
+      .dev-warning {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        background: rgba(250,204,21,0.07);
+        border: 1px solid rgba(250,204,21,0.2);
+        border-radius: 8px;
+        padding: 0.65rem 1rem;
+        font-size: 0.82rem;
+        color: var(--yellow);
+        margin-bottom: 1.25rem;
+      }
+
+      /* ── Tabela ── */
+      .table-wrap {
+        background: var(--bg-2);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.82rem;
+      }
+
+      thead {
+        background: var(--bg-3);
+        border-bottom: 1px solid var(--border);
+      }
+
+      th {
+        text-align: left;
+        padding: 0.65rem 0.9rem;
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
+      td {
+        padding: 0.7rem 0.9rem;
+        border-bottom: 1px solid var(--border);
+        vertical-align: middle;
+      }
+
+      tr:last-child td { border-bottom: none; }
+      tr:hover td { background: var(--bg-3); }
+
+      /* Colunas específicas */
+      .col-id    { color: var(--muted); font-family: var(--mono); font-size: 0.75rem; }
+      .col-nome  { font-weight: 600; color: #fff; }
+      .col-email { color: var(--blue); font-family: var(--mono); font-size: 0.75rem; }
+
+      .col-hash {
+        font-family: var(--mono);
+        font-size: 0.68rem;
+        color: var(--muted);
+        max-width: 220px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: color 0.15s;
+      }
+
+      .col-hash:hover { color: var(--text); }
+      .col-hash[title]::after { content: " 📋"; font-size: 0.6rem; }
+
+      .col-movs {
+        font-family: var(--mono);
+        font-size: 0.78rem;
+        color: var(--muted);
+        text-align: center;
+      }
+
+      .col-data {
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        color: var(--muted);
+        white-space: nowrap;
+      }
+
+      /* Badge de role */
+      .role-badge {
+        font-size: 0.65rem;
+        font-weight: 700;
+        letter-spacing: 0.07em;
+        text-transform: uppercase;
+        padding: 0.2rem 0.55rem;
+        border-radius: 999px;
+        border: 1px solid;
+        white-space: nowrap;
+      }
+
+      .role-badge--admin   { color: var(--yellow); border-color: rgba(250,204,21,0.35); background: rgba(250,204,21,0.08); }
+      .role-badge--usuario { color: var(--muted);  border-color: rgba(255,255,255,0.1);  background: transparent; }
+
+      /* Botão deletar */
+      .btn-del {
+        font-family: inherit;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--muted);
+        background: transparent;
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 0.25rem 0.6rem;
+        cursor: pointer;
+        transition: color 0.15s, background 0.15s, border-color 0.15s;
+        white-space: nowrap;
+      }
+
+      .btn-del:hover {
+        color: var(--red);
+        background: rgba(248,113,113,0.08);
+        border-color: rgba(248,113,113,0.4);
+      }
+
+      /* Empty / loading */
+      .table-msg {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: var(--muted);
+        font-size: 0.875rem;
+      }
+
+      /* Footer */
+      footer {
+        padding: 0.75rem 1.5rem;
+        border-top: 1px solid var(--border);
+        font-size: 0.75rem;
+        color: var(--muted);
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .footer-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+      #lastUpdate { margin-left: auto; }
+    </style>
+  </head>
+  <body>
+
+    <header>
+      <span class="dev-badge">DEV</span>
+      <h1>Painel de Debug — Usuários</h1>
+      <div class="header-right">
+        <div class="stat-pill">Total: <span id="totalCount">—</span></div>
+        <div class="stat-pill">Admins: <span id="adminCount">—</span></div>
+        <button class="btn-refresh" onclick="carregar()">↺ Atualizar</button>
+      </div>
+    </header>
+
+    <main>
+      <div class="dev-warning">
+        ⚠️ Esta página é exclusiva para desenvolvimento. Não expor em produção.
+        Contém dados sensíveis incluindo hashes de senha.
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nome</th>
+              <th>E-mail</th>
+              <th>Senha (hash bcrypt)</th>
+              <th>Perfil</th>
+              <th style="text-align:center">Movs.</th>
+              <th>Criado em</th>
+              <th>Ação</th>
+            </tr>
+          </thead>
+          <tbody id="tbody">
+            <tr><td colspan="8" class="table-msg">Carregando…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+
+    <footer>
+      <div class="footer-dot"></div>
+      <span>Servidor ativo</span>
+      <span id="lastUpdate"></span>
+    </footer>
+
+    <script>
+      // Carrega e renderiza a tabela de usuários
+      async function carregar() {
+        const tbody = document.getElementById('tbody');
+        tbody.innerHTML = '<tr><td colspan="8" class="table-msg">Carregando…</td></tr>';
+
+        try {
+          const res   = await fetch('/dev/usuarios');
+          const users = await res.json();
+
+          // Atualiza stats do header
+          document.getElementById('totalCount').textContent = users.length;
+          document.getElementById('adminCount').textContent = users.filter(u => u.role === 'admin').length;
+          document.getElementById('lastUpdate').textContent = 'Atualizado: ' + new Date().toLocaleTimeString('pt-BR');
+
+          if (!users.length) {
+            tbody.innerHTML = '<tr><td colspan="8" class="table-msg">Nenhum usuário cadastrado.</td></tr>';
+            return;
+          }
+
+          tbody.innerHTML = users.map(u => `
+            <tr>
+              <td class="col-id">${u.id}</td>
+              <td class="col-nome">${esc(u.nome)}</td>
+              <td class="col-email">${esc(u.email)}</td>
+              <td class="col-hash" title="${esc(u.senha_hash)}" onclick="copiar('${esc(u.senha_hash)}', this)">
+                ${esc(u.senha_hash.substring(0, 30))}…
+              </td>
+              <td><span class="role-badge role-badge--${u.role}">${u.role}</span></td>
+              <td class="col-movs">${u.total_movimentacoes}</td>
+              <td class="col-data">${formatarDataHora(u.criado_em)}</td>
+              <td>
+                <button class="btn-del" onclick="deletar(${u.id}, '${esc(u.nome)}')">
+                  🗑 Remover
+                </button>
+              </td>
+            </tr>
+          `).join('');
+
+        } catch (err) {
+          tbody.innerHTML = `<tr><td colspan="8" class="table-msg" style="color:#f87171">Erro ao carregar: ${err.message}</td></tr>`;
+        }
+      }
+
+      // Remove usuário e atualiza tabela automaticamente
+      async function deletar(id, nome) {
+        if (!confirm(`Remover "${nome}" e todas as suas movimentações?\nEsta ação não pode ser desfeita.`)) return;
+        try {
+          const res = await fetch(`/dev/usuarios/${id}`, { method: 'DELETE' });
+          if (!res.ok) { alert('Erro ao remover.'); return; }
+          carregar(); // atualiza tabela
+        } catch { alert('Erro de conexão.'); }
+      }
+
+      // Copia hash para clipboard ao clicar
+      function copiar(texto, el) {
+        navigator.clipboard.writeText(texto).then(() => {
+          const orig = el.style.color;
+          el.style.color = '#4ade80';
+          setTimeout(() => el.style.color = orig, 800);
+        });
+      }
+
+      function formatarDataHora(str) {
+        if (!str) return '—';
+        return str.replace('T', ' ').substring(0, 16);
+      }
+
+      function esc(str) {
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+      }
+
+      // Carrega ao abrir e atualiza a cada 30 segundos
+      carregar();
+      setInterval(carregar, 30000);
+    </script>
+  </body>
+</html>

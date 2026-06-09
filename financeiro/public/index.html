@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>FluxoCerto — Controle Financeiro</title>
-    <meta name="description" content="FluxoCerto — Controle de Fluxo de Caixa Simples. Registre entradas e saídas, acompanhe seu saldo em tempo real." />
+    <title>FluxoCerto — Controle Financeiro Comercial</title>
+    <meta name="description" content="FluxoCerto — Controle de Fluxo de Caixa, produtos e vendas para comércio. Registre entradas e saídas, acompanhe estoque e saldo em tempo real." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
@@ -12,40 +12,35 @@
   </head>
   <body>
 
-    <!-- ══ TELA DE AUTH ══════════════════════════════════════ -->
-    <div id="telaAuth" class="auth-screen">
+    <motion id="telaAuth" class="auth-screen">
       <div class="auth-card">
-
-        <!-- Logo + nome -->
         <div class="auth-brand">
-          <div class="auth-brand-icon">
+          <motion class="auth-brand-icon">
             <img src="logo.svg" alt="FluxoCerto logo" width="32" height="32" />
-          </div>
+          </motion>
           <div class="auth-brand-name">Fluxo<span>Certo</span></div>
-          <div class="auth-brand-sub">Controle financeiro simples e eficiente</div>
+          <div class="auth-brand-sub">Sistema comercial — caixa, produtos e vendas</div>
         </div>
 
-        <!-- Abas -->
         <div class="auth-tabs" role="tablist">
-          <button class="auth-tab auth-tab--active" role="tab" onclick="setAuthTab('login')">Entrar</button>
-          <button class="auth-tab" role="tab" onclick="setAuthTab('registro')">Criar conta</button>
+          <button type="button" class="auth-tab auth-tab--active" role="tab" onclick="setAuthTab('login')">Entrar</button>
+          <button type="button" class="auth-tab" role="tab" onclick="setAuthTab('registro')">Criar conta</button>
+          <button type="button" class="auth-tab" role="tab" onclick="setAuthTab('recuperar')">Recuperar senha</button>
         </div>
 
-        <!-- Login -->
         <form id="formLogin" class="auth-form" novalidate>
           <div class="field">
             <label for="loginEmail">E-mail</label>
-            <input type="email" id="loginEmail" placeholder="seu@email.com" autocomplete="email" required />
-          </div>
+            <input type="email" id="loginEmail" placeholder="admin@admin.com" autocomplete="email" required />
+          </motion>
           <div class="field">
             <label for="loginSenha">Senha</label>
             <input type="password" id="loginSenha" placeholder="••••••" autocomplete="current-password" required />
           </div>
-          <div id="loginError" class="form-error" role="alert" aria-live="polite"></div>
+          <motion id="loginError" class="form-error" role="alert" aria-live="polite"></motion>
           <button type="submit" class="btn-submit">Entrar</button>
         </form>
 
-        <!-- Registro -->
         <form id="formRegistro" class="auth-form" style="display:none" novalidate>
           <div class="field">
             <label for="regNome">Nome</label>
@@ -61,132 +56,267 @@
           </div>
           <div class="field">
             <label>Nível de acesso</label>
-            <div class="role-selector" role="group" aria-label="Nível de acesso">
+            <div class="role-selector" role="group">
               <button type="button" class="role-opt role-opt--active" data-role="usuario" onclick="setRegRole('usuario')">
                 <span class="role-opt-icon">👤</span>
                 <span class="role-opt-label">Usuário</span>
-                <span class="role-opt-desc">Lança entradas e saídas</span>
               </button>
               <button type="button" class="role-opt" data-role="admin" onclick="setRegRole('admin')">
                 <span class="role-opt-icon">⚙️</span>
                 <span class="role-opt-label">Administrador</span>
-                <span class="role-opt-desc">Acesso total ao sistema</span>
               </button>
             </div>
           </div>
-          <div id="regError" class="form-error" role="alert" aria-live="polite"></div>
+          <div id="regError" class="form-error" role="alert"></motion>
           <button type="submit" class="btn-submit">Criar conta</button>
         </form>
 
+        <form id="formRecuperar" class="auth-form" style="display:none" novalidate>
+          <p class="auth-hint">Informe seu e-mail para gerar um token de recuperação (válido por 1 hora).</p>
+          <div class="field">
+            <label for="recEmail">E-mail</label>
+            <input type="email" id="recEmail" required />
+          </div>
+          <div id="recError" class="form-error"></div>
+          <div id="recSuccess" class="form-success" style="display:none"></div>
+          <button type="submit" class="btn-submit">Gerar token</button>
+        </form>
       </div>
-    </div>
+    </motion>
 
-    <!-- ══ APP ═══════════════════════════════════════════════ -->
-    <div id="telaApp" style="display:none; flex-direction:column; min-height:100vh;">
-
-      <header class="site-header">
-        <!-- Logo no header do app -->
-        <a class="brand" href="#">
-          <img class="brand-icon" src="logo.svg" alt="FluxoCerto" />
-          <span class="brand-name">Fluxo<span>Certo</span></span>
-        </a>
-
-        <div class="header-user">
-          <span class="user-badge" id="userBadge"></span>
-          <span class="user-name" id="userName"></span>
-          <button class="btn-logout" onclick="logout()">Sair</button>
+    <div id="telaApp" class="app-shell" style="display:none">
+      <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+          <img src="logo.svg" alt="" width="28" height="28" />
+          <span class="sidebar-title">Fluxo<span>Certo</span></span>
         </div>
-      </header>
+        <nav class="sidebar-nav">
+          <button type="button" class="nav-item nav-item--active" data-section="dashboard" onclick="setAppSection('dashboard')">📊 Dashboard</button>
+          <button type="button" class="nav-item" data-section="caixa" onclick="setAppSection('caixa')">💰 Fluxo de caixa</button>
+          <button type="button" class="nav-item" data-section="produtos" onclick="setAppSection('produtos')">📦 Produtos</button>
+          <button type="button" class="nav-item" data-section="vendas" onclick="setAppSection('vendas')">🛒 Vendas</button>
+          <button type="button" class="nav-item" id="navUsuarios" data-section="usuarios" style="display:none" onclick="setAppSection('usuarios')">👥 Usuários</button>
+        </nav>
+      </aside>
 
-      <nav class="app-tabs" id="appTabs">
-        <button class="app-tab app-tab--active" onclick="setAppTab('dashboard')">Dashboard</button>
-        <button class="app-tab" id="tabUsuarios" style="display:none" onclick="setAppTab('usuarios')">Usuários</button>
-      </nav>
-
-      <!-- ── Dashboard ── -->
-      <div id="painelDashboard" class="container">
-
-        <section class="summary" aria-label="Resumo financeiro">
-          <div class="summary-card summary-card--balance">
-            <span class="summary-label">Saldo atual</span>
-            <span class="summary-value" id="saldo">R$ 0,00</span>
+      <div class="app-main">
+        <header class="site-header">
+          <button type="button" class="btn-menu" onclick="toggleSidebar()" aria-label="Menu">☰</button>
+          <span class="page-title" id="pageTitle">Dashboard</span>
+          <div class="header-user">
+            <span class="user-badge" id="userBadge"></span>
+            <span class="user-name" id="userName"></span>
+            <button type="button" class="btn-logout" onclick="logout()">Sair</button>
           </div>
-          <div class="summary-card summary-card--income">
-            <span class="summary-label">Entradas</span>
-            <span class="summary-value" id="totalEntradas">R$ 0,00</span>
-          </div>
-          <div class="summary-card summary-card--expense">
-            <span class="summary-label">Saídas</span>
-            <span class="summary-value" id="totalSaidas">R$ 0,00</span>
-          </div>
-        </section>
+        </header>
 
-        <section class="form-section" aria-label="Nova movimentação">
-          <h2 class="section-title">Nova movimentação</h2>
-          <form id="form" novalidate>
-            <div class="form-row">
-              <div class="field field--grow">
-                <label for="descricao">Descrição</label>
-                <input type="text" id="descricao" placeholder="Ex: Salário, Aluguel…" maxlength="100" required />
-              </div>
-              <div class="field">
-                <label for="valor">Valor (R$)</label>
-                <input type="number" id="valor" placeholder="0,00" min="0.01" step="0.01" required />
-              </div>
+        <!-- Dashboard -->
+        <main id="painelDashboard" class="container panel">
+          <section class="summary" aria-label="Resumo">
+            <div class="summary-card summary-card--balance">
+              <span class="summary-label">Saldo em caixa</span>
+              <span class="summary-value" id="dashSaldo">R$ 0,00</span>
             </div>
-            <div class="form-row">
-              <div class="field">
-                <label for="data">Data</label>
-                <input type="date" id="data" required />
-              </div>
-              <div class="field field--grow">
-                <label>Tipo</label>
-                <div class="tipo-toggle" role="group">
-                  <button type="button" class="tipo-btn tipo-btn--active" data-tipo="entrada" id="btnEntrada">↑ Entrada</button>
-                  <button type="button" class="tipo-btn" data-tipo="saida" id="btnSaida">↓ Saída</button>
+            <motion class="summary-card">
+              <span class="summary-label">Produtos ativos</span>
+              <span class="summary-value" id="dashProdutos">0</span>
+            </motion>
+            <div class="summary-card summary-card--income">
+              <span class="summary-label">Vendas hoje</span>
+              <span class="summary-value" id="dashVendasHoje">R$ 0,00</span>
+            </div>
+          </section>
+
+          <section class="form-section">
+            <h2 class="section-title">Gráfico do mês</h2>
+            <canvas id="chartFinanceiro" height="120" aria-label="Gráfico financeiro"></canvas>
+          </section>
+
+          <section class="grid-2">
+            <div class="form-section">
+              <h2 class="section-title">Estoque baixo</h2>
+              <div id="dashEstoqueBaixo" class="lista lista--compact"></div>
+            </div>
+            <div class="form-section">
+              <h2 class="section-title">Últimas movimentações</h2>
+              <div id="dashUltimas" class="lista lista--compact"></div>
+            </div>
+          </section>
+        </main>
+
+        <!-- Fluxo de caixa -->
+        <main id="painelCaixa" class="container panel" style="display:none">
+          <section class="summary">
+            <div class="summary-card summary-card--balance">
+              <span class="summary-label">Saldo</span>
+              <span class="summary-value" id="saldo">R$ 0,00</span>
+            </div>
+            <div class="summary-card summary-card--income">
+              <span class="summary-label">Entradas</span>
+              <span class="summary-value" id="totalEntradas">R$ 0,00</span>
+            </div>
+            <div class="summary-card summary-card--expense">
+              <span class="summary-label">Saídas</span>
+              <span class="summary-value" id="totalSaidas">R$ 0,00</span>
+            </div>
+          </section>
+
+          <section class="form-section">
+            <h2 class="section-title">Nova movimentação</h2>
+            <form id="form" novalidate>
+              <div class="form-row">
+                <div class="field field--grow">
+                  <label for="descricao">Descrição</label>
+                  <input type="text" id="descricao" maxlength="100" required />
+                </div>
+                <div class="field">
+                  <label for="valor">Valor (R$)</label>
+                  <input type="number" id="valor" min="0.01" step="0.01" required />
                 </div>
               </div>
-            </div>
-            <div id="formError" class="form-error" role="alert" aria-live="polite"></div>
-            <button type="submit" class="btn-submit">Adicionar movimentação</button>
-          </form>
-        </section>
+              <div class="form-row">
+                <motion class="field">
+                  <label for="data">Data</label>
+                  <input type="date" id="data" required />
+                </motion>
+                <div class="field">
+                  <label for="subtipo">Categoria</label>
+                  <select id="subtipo"></select>
+                </div>
+                <div class="field">
+                  <label for="forma_pagamento">Pagamento</label>
+                  <select id="forma_pagamento">
+                    <option value="dinheiro">Dinheiro</option>
+                    <option value="pix">PIX</option>
+                    <option value="cartao">Cartão</option>
+                    <option value="boleto">Boleto</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-row">
+                <motion class="field field--grow">
+                  <label>Tipo</label>
+                  <div class="tipo-toggle" role="group">
+                    <button type="button" class="tipo-btn tipo-btn--active" id="btnEntrada">↑ Entrada</button>
+                    <button type="button" class="tipo-btn" id="btnSaida">↓ Saída</button>
+                  </div>
+                </motion>
+              </div>
+              <div id="formError" class="form-error"></div>
+              <button type="submit" class="btn-submit">Adicionar</button>
+            </form>
+          </section>
 
-        <section class="list-section" aria-label="Movimentações">
-          <h2 class="section-title">Histórico</h2>
-          <div id="lista" class="lista">
-            <div class="empty-state">
-              <span class="empty-icon">📋</span>
-              <p>Nenhuma movimentação ainda.<br>Adicione a primeira acima.</p>
+          <section class="list-section">
+            <div class="filters-bar">
+              <h2 class="section-title" style="margin:0">Histórico</h2>
+              <div class="filters">
+                <select id="filtroTipo" onchange="carregarMovimentacoes()">
+                  <option value="">Todos os tipos</option>
+                  <option value="entrada">Entradas</option>
+                  <option value="saida">Saídas</option>
+                </select>
+                <input type="date" id="filtroDe" onchange="carregarMovimentacoes()" />
+                <input type="date" id="filtroAte" onchange="carregarMovimentacoes()" />
+              </div>
             </div>
-          </div>
-        </section>
+            <motion id="lista" class="lista"></motion>
+          </section>
+        </main>
 
+        <!-- Produtos -->
+        <main id="painelProdutos" class="container panel" style="display:none">
+          <section class="form-section" id="secFormProduto">
+            <h2 class="section-title" id="tituloFormProduto">Novo produto</h2>
+            <form id="formProduto" novalidate>
+              <input type="hidden" id="prodId" />
+              <div class="form-row">
+                <div class="field field--grow"><label>Nome</label><input id="prodNome" required /></div>
+                <div class="field"><label>Cód. barras</label><input id="prodBarras" /></div>
+              </div>
+              <div class="form-row">
+                <div class="field"><label>Categoria</label><input id="prodCategoria" /></div>
+                <motion class="field"><label>Fornecedor</label><input id="prodFornecedor" /></motion>
+              </div>
+              <div class="form-row">
+                <div class="field"><label>Preço custo</label><input type="number" id="prodCusto" step="0.01" min="0" /></div>
+                <div class="field"><label>Preço venda</label><input type="number" id="prodVenda" step="0.01" min="0" required /></div>
+                <div class="field"><label>Estoque</label><input type="number" id="prodEstoque" min="0" /></motion>
+                <div class="field"><label>Mínimo</label><input type="number" id="prodMinimo" min="0" /></div>
+              </div>
+              <motion id="prodError" class="form-error"></motion>
+              <button type="submit" class="btn-submit" id="btnSalvarProduto">Salvar produto</button>
+            </form>
+          </section>
+          <section class="list-section">
+            <div class="filters-bar">
+              <input type="search" id="buscaProduto" placeholder="Buscar produto…" oninput="debounceProdutos()" />
+              <label class="chk-label"><input type="checkbox" id="filtroEstoqueBaixo" onchange="carregarProdutos()" /> Estoque baixo</label>
+            </div>
+            <div id="listaProdutos" class="lista"></div>
+          </section>
+        </main>
+
+        <!-- Vendas -->
+        <main id="painelVendas" class="container panel" style="display:none">
+          <section class="form-section">
+            <h2 class="section-title">Registrar venda</h2>
+            <form id="formVenda" novalidate>
+              <div class="form-row">
+                <div class="field field--grow">
+                  <label>Produto</label>
+                  <select id="vendaProduto" required></select>
+                </div>
+                <div class="field"><label>Qtd</label><input type="number" id="vendaQtd" min="1" value="1" required /></div>
+                <div class="field">
+                  <label>Pagamento</label>
+                  <select id="vendaPagamento">
+                    <option value="dinheiro">Dinheiro</option>
+                    <option value="pix">PIX</option>
+                    <option value="cartao">Cartão</option>
+                  </select>
+                </div>
+              </div>
+              <div id="vendaError" class="form-error"></div>
+              <button type="submit" class="btn-submit">Registrar venda</button>
+            </form>
+          </section>
+          <section class="list-section">
+            <h2 class="section-title">Vendas recentes</h2>
+            <div id="listaVendas" class="lista"></div>
+          </section>
+        </main>
+
+        <!-- Usuários -->
+        <main id="painelUsuarios" class="container panel" style="display:none">
+          <section class="form-section">
+            <h2 class="section-title">Novo usuário</h2>
+            <form id="formUsuario" novalidate>
+              <div class="form-row">
+                <div class="field field--grow"><label>Nome</label><input id="usrNome" required /></div>
+                <div class="field field--grow"><label>E-mail</label><input type="email" id="usrEmail" required /></div>
+              </div>
+              <div class="form-row">
+                <div class="field"><label>Senha</label><input type="password" id="usrSenha" required /></motion>
+                <div class="field"><label>Telefone</label><input id="usrTelefone" /></div>
+                <div class="field">
+                  <label>Perfil</label>
+                  <select id="usrRole"><option value="usuario">Usuário</option><option value="admin">Admin</option></select>
+                </div>
+              </div>
+              <button type="submit" class="btn-submit">Cadastrar</button>
+            </form>
+          </section>
+          <section class="users-panel">
+            <p class="users-panel-sub" id="usersCount">—</p>
+            <div id="listaUsuarios" class="lista"></motion>
+          </section>
+        </main>
       </div>
-
-      <!-- ── Painel Usuários (admin) ── -->
-      <div id="painelUsuarios" class="container" style="display:none">
-        <section class="users-panel">
-          <div class="users-panel-head">
-            <div>
-              <h2 class="section-title" style="margin-bottom:0.2rem">Usuários cadastrados</h2>
-              <p class="users-panel-sub" id="usersCount">—</p>
-            </div>
-          </div>
-          <div class="users-table-header">
-            <span>Usuário</span>
-            <span>Cadastro</span>
-            <span>Perfil</span>
-            <span>Ações</span>
-          </div>
-          <div id="listaUsuarios" class="lista"></div>
-        </section>
-      </div>
-
     </div>
 
     <footer class="site-footer">
-      <small>FluxoCerto © 2026 — Controle financeiro simples</small>
+      <small>FluxoCerto © 2026 — Sistema comercial</small>
     </footer>
 
     <script src="app.js"></script>
